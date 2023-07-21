@@ -34,7 +34,11 @@ from mappings import color_map, name_map
 # python main.py --verbose
 verbose_mode = False
 
+<<<<<<< HEAD
 VERSION = 4
+=======
+VERSION = 3
+>>>>>>> dbbae55 (Fix start_x)
 
 
 canvas_id = 0
@@ -67,7 +71,7 @@ def closest_color(target_rgb, rgb_colors_array_in):
 def set_pixel_and_check_ratelimit(
     access_token_in, x, y, color_index_in=18, canvas_index=1
 ):
-    debug_dry_run = False
+    debug_dry_run = True
     tag = canvas_index
     if tag == 4:
         logging.info(
@@ -244,7 +248,11 @@ def get_board(access_token_in, tag=None):
     return boardimg
 
 
+<<<<<<< HEAD
 def get_unset_pixel(boardimg, x, y) -> Optional[Tuple[int, int, Tuple[int, int, int]]]:
+=======
+def get_unset_pixel(boardimg, x, y):
+>>>>>>> dbbae55 (Fix start_x)
     pix2 = Image.open(boardimg).convert("RGBA").load()
     num_loops = 0
     lock.acquire()
@@ -448,6 +456,7 @@ def task(credentials_index):
                 if optional_pixel is not None:
                     current_r, current_c, new_rgb = optional_pixel
 
+<<<<<<< HEAD
                     # get converted color
                     new_rgb_hex = rgb_to_hex(new_rgb)
                     pixel_color_index = color_map[new_rgb_hex]
@@ -464,6 +473,17 @@ def task(credentials_index):
                 else:
                     logging.info(f"Thread {credentials_index} :: No pixels are wrong! Taking a 5 second break")
                     time.sleep(3) # the last second is slept at the beginning of the next loop iteration
+=======
+                # draw the pixel onto r/place
+                logging.debug(f"PLACEMENT {pixel_x_start} {pixel_y_start} {current_c} {current_r}")
+                next_pixel_placement_time = set_pixel_and_check_ratelimit(
+                    access_tokens[credentials_index],
+                    pixel_x_start + current_r,
+                    pixel_y_start + current_c,
+                    pixel_color_index,
+                    canvas_id
+                ) + random.randint(3, 8)
+>>>>>>> dbbae55 (Fix start_x)
 
 
 

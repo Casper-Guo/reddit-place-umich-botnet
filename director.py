@@ -18,9 +18,9 @@ workers = set()
 
 running = False
 # canvas x y
-# target = '2 175 633 https://cdn.discordapp.com/attachments/959639366127480842/1132058879765778592/19x-target.png'
-target = '2 157 632 https://cdn.discordapp.com/attachments/1132134506644643861/1132517400240193617/pixil-frame-0-38.png'
-VERSION = 4
+target = '4 137 54 https://media.discordapp.net/attachments/958338474950422558/1131788232196096080/pixil-frame-0.png'
+VERSION = 3
+
 
 async def echo(websocket):
     with workers_lock:
@@ -45,10 +45,12 @@ async def echo(websocket):
                     await websocket.send('stop')
             elif msg.startswith('placed'):
                 (xs, ys, cs) = msg.split(' ')[1:]
-                logging.info(f'worker {websocket.remote_address} has placed {mappings.name_map[int(cs)]} at ({xs}, {ys})')
+                logging.info(
+                    f'worker {websocket.remote_address} has placed {mappings.name_map[int(cs)]} at ({xs}, {ys})')
             elif msg.startswith('failed-to-place'):
                 (xs, ys, cs) = msg.split(' ')[1:]
-                logging.info(f'worker {websocket.remote_address} failed to place {mappings.name_map[int(cs)]} at ({xs}, {ys})')
+                logging.info(
+                    f'worker {websocket.remote_address} failed to place {mappings.name_map[int(cs)]} at ({xs}, {ys})')
             else:
                 logging.error('unrecognized msg from worker: ' + msg)
     except Exception as e:
@@ -60,9 +62,10 @@ async def echo(websocket):
 # key = 'server-key.pem'
 # ssl_context.load_cert_chain(key)
 
+
 async def main():
     global target, running
-    async with websockets.serve(echo, '0.0.0.0', 4523): #ssl=ssl_context):
+    async with websockets.serve(echo, '0.0.0.0', 4523):  # ssl=ssl_context):
         while True:
             try:
                 cmd = await ainput('>>')
