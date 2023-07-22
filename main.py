@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
+import argparse
+import json
+import logging
+import math
 import os
 import os.path
+<<<<<<< HEAD
 import math
 import ssl
 from typing import Optional, Tuple
@@ -24,9 +29,27 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 from PIL import ImageColor
 from PIL import Image
+=======
+>>>>>>> cf7f7d0 (Style)
 import random
+import sched
+import ssl
+import subprocess
+import sys
+import threading
+import time
+import urllib
+from io import BytesIO
+from urllib.request import urlretrieve
 
+import colorama
+import requests
+from dotenv import load_dotenv
+from PIL import Image, ImageColor
+from requests.auth import HTTPBasicAuth
+from websocket import create_connection
 
+import auth
 from mappings import color_map, name_map
 
 # Option remains for legacy usage
@@ -44,6 +67,8 @@ VERSION = 3
 canvas_id = 0
 
 # function to convert rgb tuple to hexadecimal string
+
+
 def rgb_to_hex(rgb):
     return ("#%02x%02x%02x" % rgb).upper()
 
@@ -101,7 +126,7 @@ def set_pixel_and_check_ratelimit(
                     },
                 }
             },
-            "query": 'mutation setPixel($input: ActInput!) {\n  act(input: $input) {\n    data {\n      ... on BasicMessage {\n        id\n        data {\n          ... on GetUserCooldownResponseMessageData {\n            nextAvailablePixelTimestamp\n            __typename\n          }\n          ... on SetPixelResponseMessageData {\n            timestamp\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n'
+            "query": "mutation setPixel($input: ActInput!) {\n  act(input: $input) {\n    data {\n      ... on BasicMessage {\n        id\n        data {\n          ... on GetUserCooldownResponseMessageData {\n            nextAvailablePixelTimestamp\n            __typename\n          }\n          ... on SetPixelResponseMessageData {\n            timestamp\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n",
         }
     )
     headers = {
@@ -112,11 +137,11 @@ def set_pixel_and_check_ratelimit(
         "apollographql-client-version": "0.0.1",
         "Authorization": "Bearer " + access_token_in,
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
     }
 
     if not debug_dry_run:
-        logging.debug(f'requesting placement {headers} {payload}')
+        logging.debug(f"requesting placement {headers} {payload}")
         response = requests.request("POST", url, headers=headers, data=payload)
         logging.debug(f"Received response: {response.text}")
     global directed_to_run
@@ -132,28 +157,32 @@ def set_pixel_and_check_ratelimit(
         )
         # report pixel drawing to the director
         if conn is not None and conn.connected:
-            conn.send(f'failed-to-place {x} {y} {color_index_in}')
-            logging.info('informed director of failure to place')
+            conn.send(f"failed-to-place {x} {y} {color_index_in}")
+            logging.info("informed director of failure to place")
         else:
-            logging.warn('could not report placement to director (disconnected)')
-            logging.error('cannot place colors without director connection. stopping.')
+            logging.warn("could not report placement to director (disconnected)")
+            logging.error("cannot place colors without director connection. stopping.")
             directed_to_run = False
     else:
-        waitTime = math.floor(
-            response.json()["data"]["act"]["data"][0]["data"][
-                "nextAvailablePixelTimestamp"
-            ]
-        ) if not debug_dry_run else 5
+        waitTime = (
+            math.floor(
+                response.json()["data"]["act"]["data"][0]["data"][
+                    "nextAvailablePixelTimestamp"
+                ]
+            )
+            if not debug_dry_run
+            else 5
+        )
         logging.info(
             f"{colorama.Fore.GREEN}Succeeded placing pixel {colorama.Style.RESET_ALL}"
         )
         # report pixel drawing to the director
         if conn is not None and conn.connected:
-            conn.send(f'placed {x} {y} {color_index_in}')
-            logging.info('informed director of placement')
+            conn.send(f"placed {x} {y} {color_index_in}")
+            logging.info("informed director of placement")
         else:
-            logging.warn('could not report placement to director (disconnected)')
-            logging.error('cannot place colors without director connection. stopping.')
+            logging.warn("could not report placement to director (disconnected)")
+            logging.error("cannot place colors without director connection. stopping.")
             directed_to_run = False
 
     # THIS COMMENTED CODE LETS YOU DEBUG THREADS FOR TESTING
@@ -175,7 +204,8 @@ def get_board(access_token_in, tag=None):
         tag = canvas_id
     logging.info(f"Getting board {tag}")
     ws = create_connection(
-        "wss://gql-realtime-2.reddit.com/query", origin="https://garlic-bread.reddit.com"
+        "wss://gql-realtime-2.reddit.com/query",
+        origin="https://garlic-bread.reddit.com",
     )
     ws.send(
         json.dumps(
@@ -219,7 +249,7 @@ def get_board(access_token_in, tag=None):
                             "channel": {
                                 "teamOwner": "GARLICBREAD",
                                 "category": "CANVAS",
-                                "tag": str(tag)
+                                "tag": str(tag),
                             }
                         }
                     },
@@ -273,10 +303,17 @@ def get_unset_pixel(boardimg, x, y):
         # logging.debug(f"{x}, {y}, boardimg, {image_width}, {image_height}")
 
         target_rgb = pix[x, y]
+<<<<<<< HEAD
+=======
+        logging.debug(f"target_rgb at {(x,y)} is {target_rgb}")
+>>>>>>> cf7f7d0 (Style)
         if target_rgb[3] > 50:
             target_rgb = target_rgb[:3]
             new_rgb = closest_color(target_rgb, rgb_colors_array)
-            if pix2[(x + pixel_x_start)%1000, (y + pixel_y_start)%1000][:3] != new_rgb:
+            if (
+                pix2[(x + pixel_x_start) % 1000, (y + pixel_y_start) % 1000][:3]
+                != new_rgb
+            ):
                 logging.debug(
                     f"{(x + pixel_x_start, y + pixel_y_start)} incorrect: {pix2[(x + pixel_x_start)%1000, (y + pixel_y_start)%1000][:3]}, {new_rgb}, {new_rgb != (69, 42, 0)}, {pix2[x%1000, y%1000][:3] != new_rgb,}"
                 )
@@ -284,11 +321,15 @@ def get_unset_pixel(boardimg, x, y):
                     unset_pixels.add((x, y, new_rgb))
                 else:
                     print("TransparentPixel")
+<<<<<<< HEAD
     logging.info(f'found {len(unset_pixels)} incorrect pixels in current canvas')
     if len(unset_pixels) == 0:
         lock.release()
         return None
     # Selection logic here
+=======
+    logging.info(f"found {len(unset_pixels)} incorrect pixels in current canvas")
+>>>>>>> cf7f7d0 (Style)
     (x, y, new_rgb) = random.choice(list(unset_pixels))
     logging.debug(
         f"Replacing {pix2[(x+pixel_x_start)%1000, (y+pixel_y_start)%1000]} pixel at: {x+pixel_x_start},{y+pixel_y_start} with {new_rgb} color"
@@ -365,7 +406,6 @@ def task(credentials_index):
         # pixel drawing preferences
         global pixel_x_start, pixel_y_start
 
-
         # string for time until next pixel is drawn
         update_str = ""
 
@@ -385,7 +425,7 @@ def task(credentials_index):
             logging.debug('lock is locked? ' + str(lock.locked()))
 
             if not directed_to_run:
-                logging.debug('skipping iteration because not directed to run')
+                logging.debug("skipping iteration because not directed to run")
                 continue
 
             # get the current time
@@ -394,16 +434,15 @@ def task(credentials_index):
             # log next time until drawing
             time_until_next_draw = next_pixel_placement_time - current_timestamp
             new_update_str = (
-                str(time_until_next_draw) + " seconds until next pixel is drawn"
+                str(math.ceil(time_until_next_draw / 60))
+                + " minutes until next pixel is drawn"
             )
             if update_str != new_update_str and time_until_next_draw % 10 == 0:
                 update_str = new_update_str
                 logging.info(f"Thread #{credentials_index} :: {update_str}")
 
             # refresh access token if necessary
-            if (
-                access_tokens[credentials_index] is None
-            ):
+            if access_tokens[credentials_index] is None:
                 logging.info(f"Thread #{credentials_index} :: Refreshing access token")
 
                 # developer's reddit username and password
@@ -425,7 +464,9 @@ def task(credentials_index):
                     exit(1)
 
                 try:
-                    access_tokens[credentials_index] = auth.get_access_token(username, password, logging)
+                    access_tokens[credentials_index] = auth.get_access_token(
+                        username, password, logging
+                    )
                 except:
                     repeat_forever = False
                     logging.fatal(f"Bad account {username}")
@@ -437,7 +478,6 @@ def task(credentials_index):
                 current_timestamp >= next_pixel_placement_time
                 or first_run_counter <= credentials_index
             ):
-
                 # place pixel immediately
                 # first_run = False
                 first_run_counter += 1
@@ -475,13 +515,15 @@ def task(credentials_index):
                     time.sleep(3) # the last second is slept at the beginning of the next loop iteration
 =======
                 # draw the pixel onto r/place
-                logging.debug(f"PLACEMENT {pixel_x_start} {pixel_y_start} {current_c} {current_r}")
+                logging.debug(
+                    f"PLACEMENT {pixel_x_start} {pixel_y_start} {current_c} {current_r}"
+                )
                 next_pixel_placement_time = set_pixel_and_check_ratelimit(
                     access_tokens[credentials_index],
                     pixel_x_start + current_r,
                     pixel_y_start + current_c,
                     pixel_color_index,
-                    canvas_id
+                    canvas_id,
                 ) + random.randint(3, 8)
 >>>>>>> dbbae55 (Fix start_x)
 
@@ -500,13 +542,16 @@ def task(credentials_index):
 
 
 def get_last_modified_commit() -> str:
-    return subprocess.run(["git", "log", "-1", "--format=%H", "image.png"], capture_output=True, text=True).stdout
+    return subprocess.run(
+        ["git", "log", "-1", "--format=%H", "image.png"], capture_output=True, text=True
+    ).stdout
+
 
 def pull_image(scheduler: sched.scheduler):
     print("Attempting to pull image...")
     global last_modified_commit
 
-    if (last_modified_commit is None):
+    if last_modified_commit is None:
         last_modified_commit = get_last_modified_commit()
 
     subprocess.run(["git", "pull"], capture_output=True, text=True)
@@ -519,66 +564,70 @@ def pull_image(scheduler: sched.scheduler):
     else:
         print("Not modified!")
     scheduler.enter(scheduler_delay, 1, pull_image, (scheduler,))
-    
+
 
 def director_comms():
     url = os.getenv("ENV_DIRECTOR_URL")
     if url is None:
-        logging.fatal('This bot is managed by a director. Please ask for the Director URL and set it to ENV_DIRECTOR_URL in .env.')
+        logging.fatal(
+            "This bot is managed by a director. Please ask for the Director URL and set it to ENV_DIRECTOR_URL in .env."
+        )
         exit()
 
     def read_target(conn, recvd):
-        (targ, targ_canvas, targ_xs, targ_ys, img_url) = recvd.split(' ')
-        assert targ == 'target'
+        (targ, targ_canvas, targ_xs, targ_ys, img_url) = recvd.split(" ")
+        assert targ == "target"
         global canvas_id
         canvas_id = int(targ_canvas)
-        os.environ['ENV_DRAW_X_START'] = str(int(targ_xs))
-        os.environ['ENV_DRAW_Y_START'] = str(int(targ_ys))
+        os.environ["ENV_DRAW_X_START"] = str(int(targ_xs))
+        os.environ["ENV_DRAW_Y_START"] = str(int(targ_ys))
         global pixel_x_start, pixel_y_start
         logging.debug(f"TARGET {targ} {targ_canvas} {targ_xs} {targ_ys}")
         pixel_x_start = int(targ_xs)
         pixel_y_start = int(targ_ys)
-        logging.info('Got target info from director, downloading image')
-        target_img = 'image.png' if '.png' in img_url else 'image.jpg'
-        logging.info('getting new target image from ' + img_url)
-        req = requests.get(img_url, headers={'User-Agent':'Mozilla/5.0'})
-        with open(target_img, 'wb') as _file:
+        logging.info("Got target info from director, downloading image")
+        target_img = "image.png" if ".png" in img_url else "image.jpg"
+        logging.info("getting new target image from " + img_url)
+        req = requests.get(img_url, headers={"User-Agent": "Mozilla/5.0"})
+        with open(target_img, "wb") as _file:
             _file.write(req.content)
-        logging.info('Downloaded target image')
+        logging.info("Downloaded target image")
         load_image()
-        conn.send('ok')
+        conn.send("ok")
 
-    #ctx = ssl.create_default_context()
-    #ctx.load_verify_locations('mcert.cer')
+    # ctx = ssl.create_default_context()
+    # ctx.load_verify_locations('mcert.cer')
 
     run = True
     global directed_to_run, conn
     while run:
         try:
-            logging.info('contacting director at ' + url)
-            conn = create_connection(url)# sslopt={'context': ctx})
-            conn.send(f'hello {VERSION}')
+            logging.info("contacting director at " + url)
+            conn = create_connection(url)  # sslopt={'context': ctx})
+            conn.send(f"hello {VERSION}")
             read_target(conn, conn.recv())
             while True:
                 msg = conn.recv()
-                if msg == 'stop':
+                if msg == "stop":
                     directed_to_run = False
-                    logging.info('Directed to stop running')
-                    conn.send('ok')
-                elif msg == 'start':
+                    logging.info("Directed to stop running")
+                    conn.send("ok")
+                elif msg == "start":
                     directed_to_run = True
-                    logging.info('Directed to start running')
-                    conn.send('ok')
-                elif msg == 'ping':
-                    conn.send('pong')
-                elif msg == 'stats':
-                    conn.send('[]')
-                elif msg.startswith('target'):
+                    logging.info("Directed to start running")
+                    conn.send("ok")
+                elif msg == "ping":
+                    conn.send("pong")
+                elif msg == "stats":
+                    conn.send("[]")
+                elif msg.startswith("target"):
                     read_target(conn, msg)
-                elif msg == 'out-of-date':
-                    logging.warning('Director says this client is out-of-date! Check https://github.com/broad-well/reddit-place-umich-botnet for updates.')
+                elif msg == "out-of-date":
+                    logging.warning(
+                        "Director says this client is out-of-date! Check https://github.com/broad-well/reddit-place-umich-botnet for updates."
+                    )
         except Exception as e:
-            logging.error('director connection lost %s, retrying in 5 seconds' % e)
+            logging.error("director connection lost %s, retrying in 5 seconds" % e)
             time.sleep(5)
 
 
@@ -586,7 +635,6 @@ def director_comms():
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     colorama.init()
     parser.add_argument(
@@ -649,7 +697,7 @@ ENV_DIRECTOR_URL='ws://botnet.umich.place:4523'"""
     directed_to_run = False
     pixel_x_start = None
     pixel_y_start = None
-    conn = None # connection to director, needed to report color updates
+    conn = None  # connection to director, needed to report color updates
 
     # get color palette
     init_rgb_colors_array()
@@ -668,7 +716,7 @@ ENV_DIRECTOR_URL='ws://botnet.umich.place:4523'"""
 
     scheduler = sched.scheduler(time.time, time.sleep)
     scheduler_delay = 1800
-    #scheduler.enter(scheduler_delay, 1, pull_image, (scheduler,))
+    # scheduler.enter(scheduler_delay, 1, pull_image, (scheduler,))
     thread0 = threading.Thread(target=scheduler.run)
     thread0.start()
 

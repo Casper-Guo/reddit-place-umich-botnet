@@ -1,19 +1,20 @@
-import requests
-from bs4 import BeautifulSoup
-import time
 import json
 import logging
+import time
+
+import requests
+from bs4 import BeautifulSoup
+
 
 def get_access_token(username, password, logger: logging.Logger):
     while True:
         try:
-            logger.debug('Getting access token for ' + username)
+            logger.debug("Getting access token for " + username)
             client = requests.Session()
             client.headers.update(
                 {
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-                    "Scheme": "https"
-                    
+                    "Scheme": "https",
                 }
             )
 
@@ -21,9 +22,7 @@ def get_access_token(username, password, logger: logging.Logger):
                 "https://www.reddit.com/login",
             )
             login_get_soup = BeautifulSoup(r.content, "html.parser")
-            csrf_token = login_get_soup.find(
-                "input", {"name": "csrf_token"}
-            )["value"]
+            csrf_token = login_get_soup.find("input", {"name": "csrf_token"})["value"]
             data = {
                 "csrf_token": csrf_token,
                 "password": password,
@@ -45,14 +44,14 @@ def get_access_token(username, password, logger: logging.Logger):
     if r.status_code != 200:
         # password is probably invalid
         logger.exception(f"{username} - Authorization failed!")
-        logger.debug("response: {r.status_code}, {r.text}", )
+        logger.debug(
+            "response: {r.status_code}, {r.text}",
+        )
         return
     else:
         logger.info(f"{username} - Authorization successful!")
     logger.info("Obtaining access token...")
-    r = client.get(
-        "https://new.reddit.com/"
-    )
+    r = client.get("https://new.reddit.com/")
     data_str = (
         BeautifulSoup(r.content, features="html.parser")
         .find("script", {"id": "data"})

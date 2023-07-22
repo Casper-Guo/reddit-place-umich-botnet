@@ -1,8 +1,6 @@
 import asyncio
 import pathlib
 import ssl
-import websockets
-import mappings
 import threading
 import logging
 from aioconsole import ainput
@@ -22,25 +20,26 @@ target = '4 137 54 https://media.discordapp.net/attachments/958338474950422558/1
 VERSION = 3
 
 
+
 async def echo(websocket):
     with workers_lock:
         workers.add(websocket)
     try:
         async for msg in websocket:
-            if msg == 'ok':
+            if msg == "ok":
                 pass
-            elif msg == 'pong':
-                print(websocket.remote_address, 'says pong')
-            elif msg == 'bye':
+            elif msg == "pong":
+                print(websocket.remote_address, "says pong")
+            elif msg == "bye":
                 break
             elif msg.startswith('hello'):
                 logging.info(f'new client {websocket.remote_address}')
                 bot_version = msg.split(' ')[1]
                 await websocket.send('target ' + target)
                 if int(bot_version) < VERSION:
-                    await websocket.send('out-of-date')
+                    await websocket.send("out-of-date")
                 if running:
-                    await websocket.send('start')
+                    await websocket.send("start")
                 else:
                     await websocket.send('stop')
             elif msg.startswith('placed'):
@@ -58,6 +57,7 @@ async def echo(websocket):
     finally:
         workers.remove(websocket)
 
+
 # ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 # key = 'server-key.pem'
 # ssl_context.load_cert_chain(key)
@@ -65,7 +65,7 @@ async def echo(websocket):
 
 async def main():
     global target, running
-    async with websockets.serve(echo, '0.0.0.0', 4523):  # ssl=ssl_context):
+    async with websockets.serve(echo, "0.0.0.0", 4523):  # ssl=ssl_context):
         while True:
             try:
                 cmd = await ainput('>>')
@@ -90,4 +90,8 @@ async def main():
                 print(e)
         # await asyncio.Future()
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> cf7f7d0 (Style)
 asyncio.run(main())
