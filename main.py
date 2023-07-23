@@ -96,7 +96,7 @@ def closest_color(target_rgb, rgb_colors_array_in):
 def set_pixel_and_check_ratelimit(
     access_token_in, x, y, color_index_in=18, canvas_index=1
 ):
-    debug_dry_run = True
+    debug_dry_run = False
     tag = canvas_index
     if tag == 4:
         logging.info(
